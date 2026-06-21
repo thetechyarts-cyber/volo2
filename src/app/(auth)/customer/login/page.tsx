@@ -43,7 +43,9 @@ function CustomerLoginInner() {
   const [otp, setOtp] = useState('');
   const [pin, setPin] = useState('');
   const [email, setEmail] = useState('');
-  const [step, setStep] = useState<'PHONE' | 'OTP' | 'PIN' | 'EMAIL'>('PHONE');
+  const [step, setStep] = useState<'PHONE' | 'OTP' | 'PIN' | 'EMAIL' | 'SET_PIN'>('PHONE');
+  const [pinSetup, setPinSetup] = useState('');
+  const [redirectToUrl, setRedirectToUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -81,7 +83,13 @@ function CustomerLoginInner() {
               if (data.deviceToken) {
                 localStorage.setItem('volo_device_token', data.deviceToken);
               }
-              router.push(data.redirectTo || '/customer/dashboard');
+              if (data.promptPinSetup) {
+                setRedirectToUrl(data.redirectTo || '/customer/dashboard');
+                setStep('SET_PIN');
+                setLoading(false);
+              } else {
+                router.push(data.redirectTo || '/customer/dashboard');
+              }
             } else {
               setErrorMsg(data.error || 'Email link authentication failed');
               setLoading(false);
@@ -234,7 +242,12 @@ function CustomerLoginInner() {
         localStorage.setItem('volo_device_token', data.deviceToken);
       }
 
-      router.push(data.redirectTo || '/customer/dashboard');
+      if (data.promptPinSetup) {
+        setRedirectToUrl(data.redirectTo || '/customer/dashboard');
+        setStep('SET_PIN');
+      } else {
+        router.push(data.redirectTo || '/customer/dashboard');
+      }
     } catch (err: any) {
       console.error(err);
       if (err.code === 'auth/invalid-verification-code') {
@@ -245,6 +258,40 @@ function CustomerLoginInner() {
         setErrorMsg('Incorrect OTP. Please check and retry.');
       }
     } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSetPin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg(null);
+    setLoading(true);
+
+    if (pinSetup.length < 4) {
+      setErrorMsg('PIN must be at least 4 digits');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/auth/set-pin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pin: pinSetup })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setErrorMsg(data.error || 'Failed to set PIN. Please try again.');
+        setLoading(false);
+        return;
+      }
+
+      router.push(redirectToUrl || '/customer/dashboard');
+    } catch (err) {
+      console.error(err);
+      setErrorMsg('Failed to set PIN. Please try again.');
       setLoading(false);
     }
   };
@@ -342,6 +389,7 @@ function CustomerLoginInner() {
             {step === 'OTP' && 'Enter the 6-digit confirmation code sent to your mobile'}
             {step === 'PIN' && 'Welcome back! Enter your secure PIN to log in'}
             {step === 'EMAIL' && 'Enter your registered email to receive a secure link'}
+            {step === 'SET_PIN' && 'Create a secure login PIN for quicker access'}
           </p>
         </div>
 
@@ -538,6 +586,36 @@ function CustomerLoginInner() {
               className="w-full bg-transparent border border-slate-800 hover:bg-slate-800 text-slate-400 font-medium rounded-lg py-2.5 text-sm transition-colors text-center cursor-pointer"
             >
               Back to Phone Login
+            </button>
+          </form>
+        )}
+
+        {step === 'SET_PIN' && (
+          <form onSubmit={handleSetPin} className="space-y-4">
+            <div className="space-y-1">
+              <label className="text-xs text-slate-400 font-medium">Create a Secure Login PIN</label>
+              <p className="text-[11px] text-slate-500 pb-1">Choose a 4 to 6 digit PIN. You will use this PIN to log in next time on this device.</p>
+              <input
+                type="password"
+                maxLength={6}
+                placeholder="••••"
+                value={pinSetup}
+                onChange={(e) => setPinSetup(e.target.value.replace(/\D/g, ''))}
+                className="w-full bg-slate-950 border border-slate-800 focus:border-violet-500 text-center tracking-[0.3em] font-mono text-lg rounded-lg px-3 py-2.5 outline-none transition-colors"
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading || pinSetup.length < 4}
+              className="w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 disabled:from-violet-600/50 disabled:to-indigo-600/50 text-white font-medium rounded-lg py-2.5 text-sm transition-all flex justify-center items-center gap-2 cursor-pointer"
+            >
+              {loading ? (
+                <span className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                'Set PIN & Continue'
+              )}
             </button>
           </form>
         )}
