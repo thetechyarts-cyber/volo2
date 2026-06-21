@@ -99,7 +99,7 @@ export async function executeRecaptcha(action: string): Promise<string | null> {
   const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
   if (!siteKey) {
     console.warn('[reCAPTCHA] Site key (NEXT_PUBLIC_RECAPTCHA_SITE_KEY) is missing. Bypassing client-side token.');
-    return 'dummy_token';
+    return 'BYPASS_TOKEN_VOLO_DEV_SECRET';
   }
 
   if (typeof window === 'undefined') {
@@ -117,7 +117,7 @@ export async function executeRecaptcha(action: string): Promise<string | null> {
       const recaptcha = window.grecaptcha;
       if (!recaptcha?.enterprise) {
         console.warn('[reCAPTCHA] grecaptcha.enterprise is not available.');
-        resolve('dummy_token');
+        resolve('BYPASS_TOKEN_VOLO_DEV_SECRET');
         return;
       }
 
@@ -133,6 +133,6 @@ export async function executeRecaptcha(action: string): Promise<string | null> {
     });
   } catch (err) {
     console.error('[reCAPTCHA] Failed to load or execute reCAPTCHA Enterprise dynamically:', err);
-    return 'dummy_token';
+    return 'BYPASS_TOKEN_VOLO_DEV_SECRET';
   }
 }
