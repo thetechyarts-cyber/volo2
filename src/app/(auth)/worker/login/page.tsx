@@ -49,8 +49,12 @@ function WorkerLoginInner() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [hasEmail, setHasEmail] = useState(false);
+  const [isPinFocused, setIsPinFocused] = useState(false);
+  const [isPinSetupFocused, setIsPinSetupFocused] = useState(false);
 
   const confirmationResultRef = useRef<ConfirmationResult | null>(null);
+  const pinInputRef = useRef<HTMLInputElement>(null);
+  const pinSetupInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     console.log("Worker login component mounted");
@@ -496,24 +500,48 @@ function WorkerLoginInner() {
         )}
 
         {step === 'PIN' && (
-          <form onSubmit={handleVerifyPin} className="space-y-4">
-            <div className="space-y-1">
-              <label className="text-xs text-slate-400 font-medium">Enter secure PIN</label>
-              <input
-                type="password"
-                maxLength={6}
-                placeholder="••••"
-                value={pin}
-                onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
-                className="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 text-center tracking-[0.5em] font-mono text-lg rounded-lg px-3 py-2.5 outline-none transition-colors"
-                required
-              />
+          <form onSubmit={handleVerifyPin} className="space-y-5">
+            <div className="space-y-2">
+              <label className="text-xs text-slate-400 font-medium block text-center">Enter Secure PIN</label>
+              <div className="relative flex justify-center py-2">
+                <input
+                  ref={pinInputRef}
+                  type="text"
+                  pattern="\d*"
+                  inputMode="numeric"
+                  maxLength={6}
+                  value={pin}
+                  onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
+                  onFocus={() => setIsPinFocused(true)}
+                  onBlur={() => setIsPinFocused(false)}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                  required
+                  autoFocus
+                />
+                <div className="flex gap-3 justify-center">
+                  {Array.from({ length: 6 }).map((_, idx) => (
+                    <div
+                      key={idx}
+                      className={`w-12 h-14 rounded-2xl border flex items-center justify-center text-2xl font-bold transition-all duration-200
+                        ${
+                          isPinFocused && pin.length === idx
+                            ? 'border-emerald-500 ring-4 ring-emerald-500/10 scale-105 bg-slate-900 shadow-md'
+                            : pin[idx]
+                            ? 'border-emerald-600 bg-slate-950 text-emerald-400 font-sans'
+                            : 'border-slate-800 bg-slate-950/60 text-slate-600'
+                        }`}
+                    >
+                      {pin[idx] ? '•' : ''}
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
 
             <button
               type="submit"
               disabled={loading || pin.length < 4}
-              className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:from-emerald-600/50 disabled:to-teal-600/50 text-white font-medium rounded-lg py-2.5 text-sm transition-all flex justify-center items-center gap-2 cursor-pointer"
+              className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:from-emerald-600/50 disabled:to-teal-600/50 text-white font-medium rounded-lg py-2.5 text-sm transition-all flex justify-center items-center gap-2 cursor-pointer shadow-lg"
             >
               {loading ? (
                 <span className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -593,25 +621,50 @@ function WorkerLoginInner() {
         )}
 
         {step === 'SET_PIN' && (
-          <form onSubmit={handleSetPin} className="space-y-4">
-            <div className="space-y-1">
-              <label className="text-xs text-slate-400 font-medium">Create a Secure Login PIN</label>
-              <p className="text-[11px] text-slate-500 pb-1">Choose a 4 to 6 digit PIN. You will use this PIN to log in next time on this device.</p>
-              <input
-                type="password"
-                maxLength={6}
-                placeholder="••••"
-                value={pinSetup}
-                onChange={(e) => setPinSetup(e.target.value.replace(/\D/g, ''))}
-                className="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 text-center tracking-[0.3em] font-mono text-lg rounded-lg px-3 py-2.5 outline-none transition-colors"
-                required
-              />
+          <form onSubmit={handleSetPin} className="space-y-5">
+            <div className="space-y-2">
+              <label className="text-xs text-slate-400 font-medium block text-center">Create a Secure Login PIN</label>
+              <p className="text-[11px] text-slate-500 text-center leading-relaxed">Choose a 4 to 6 digit PIN. You will use this PIN to log in next time on this device.</p>
+              
+              <div className="relative flex justify-center py-2">
+                <input
+                  ref={pinSetupInputRef}
+                  type="text"
+                  pattern="\d*"
+                  inputMode="numeric"
+                  maxLength={6}
+                  value={pinSetup}
+                  onChange={(e) => setPinSetup(e.target.value.replace(/\D/g, ''))}
+                  onFocus={() => setIsPinSetupFocused(true)}
+                  onBlur={() => setIsPinSetupFocused(false)}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                  required
+                  autoFocus
+                />
+                <div className="flex gap-3 justify-center">
+                  {Array.from({ length: 6 }).map((_, idx) => (
+                    <div
+                      key={idx}
+                      className={`w-12 h-14 rounded-2xl border flex items-center justify-center text-2xl font-bold transition-all duration-200
+                        ${
+                          isPinSetupFocused && pinSetup.length === idx
+                            ? 'border-emerald-500 ring-4 ring-emerald-500/10 scale-105 bg-slate-900 shadow-md'
+                            : pinSetup[idx]
+                            ? 'border-emerald-600 bg-slate-950 text-emerald-400 font-sans'
+                            : 'border-slate-800 bg-slate-950/60 text-slate-650'
+                        }`}
+                    >
+                      {pinSetup[idx] ? '•' : ''}
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
 
             <button
               type="submit"
               disabled={loading || pinSetup.length < 4}
-              className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:from-emerald-600/50 disabled:to-teal-600/50 text-white font-medium rounded-lg py-2.5 text-sm transition-all flex justify-center items-center gap-2 cursor-pointer"
+              className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:from-emerald-600/50 disabled:to-teal-600/50 text-white font-medium rounded-lg py-2.5 text-sm transition-all flex justify-center items-center gap-2 cursor-pointer shadow-lg"
             >
               {loading ? (
                 <span className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

@@ -45,8 +45,10 @@ export default function HomeLandingPage() {
   const [authSuccess, setAuthSuccess] = useState<string | null>(null);
   const [pinSetup, setPinSetup] = useState('');
   const [redirectToUrl, setRedirectToUrl] = useState('');
+  const [isPinSetupFocused, setIsPinSetupFocused] = useState(false);
 
   const confirmationResultRef = useRef<ConfirmationResult | null>(null);
+  const pinSetupInputRef = useRef<HTMLInputElement>(null);
 
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1346,24 +1348,49 @@ export default function HomeLandingPage() {
             )}
 
             {authStep === 'SET_PIN' && (
-              <form onSubmit={handleSetPin} className="space-y-4 mt-6">
+              <form onSubmit={handleSetPin} className="space-y-5 mt-6">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-extrabold uppercase text-slate-455 tracking-wider flex items-center gap-1.5">
+                  <label className="text-[10px] font-extrabold uppercase text-slate-455 tracking-wider flex items-center gap-1.5 justify-center">
                     <Lock className="h-4 w-4 text-[#FF7A00]" />
                     Create a Secure Login PIN
                   </label>
-                  <p className="text-[11px] text-slate-500 pb-1 leading-relaxed">
+                  <p className="text-[11px] text-slate-550 text-center leading-relaxed">
                     Choose a 4 to 6 digit PIN. You will use this PIN to log in next time on recognized devices.
                   </p>
-                  <input
-                    type="password"
-                    maxLength={6}
-                    placeholder="••••"
-                    value={pinSetup}
-                    onChange={(e) => setPinSetup(e.target.value.replace(/\D/g, ''))}
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-[#FF7A00] focus:ring-4 focus:ring-orange-100 text-center tracking-[0.6em] font-mono text-sm rounded-2xl px-3 py-3 outline-none transition-colors font-extrabold text-slate-800"
-                    required
-                  />
+                  
+                  <div className="relative flex justify-center py-2">
+                    <input
+                      ref={pinSetupInputRef}
+                      type="text"
+                      pattern="\d*"
+                      inputMode="numeric"
+                      maxLength={6}
+                      value={pinSetup}
+                      onChange={(e) => setPinSetup(e.target.value.replace(/\D/g, ''))}
+                      onFocus={() => setIsPinSetupFocused(true)}
+                      onBlur={() => setIsPinSetupFocused(false)}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                      required
+                      autoFocus
+                    />
+                    <div className="flex gap-3 justify-center">
+                      {Array.from({ length: 6 }).map((_, idx) => (
+                        <div
+                          key={idx}
+                          className={`w-12 h-14 rounded-2xl border flex items-center justify-center text-2xl font-bold transition-all duration-200
+                            ${
+                              isPinSetupFocused && pinSetup.length === idx
+                                ? 'border-[#FF7A00] ring-4 ring-[#FF7A00]/10 scale-105 bg-slate-50 shadow-md'
+                                : pinSetup[idx]
+                                ? 'border-[#FF7A00]/80 bg-slate-100/50 text-[#FF7A00] font-sans'
+                                : 'border-slate-200 bg-slate-50/60 text-slate-400'
+                            }`}
+                        >
+                          {pinSetup[idx] ? '•' : ''}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
 
                 <button
