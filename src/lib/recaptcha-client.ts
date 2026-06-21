@@ -63,8 +63,8 @@ export function cleanupEnterpriseRecaptcha(): void {
 
   console.log('[reCAPTCHA Client] Cleaning up reCAPTCHA Enterprise objects and scripts...');
 
-  // 1. Remove script tags matching recaptcha/enterprise.js
-  const scripts = document.querySelectorAll('script[src*="recaptcha/enterprise.js"]');
+  // 1. Remove script tags matching recaptcha (both api.js and enterprise.js)
+  const scripts = document.querySelectorAll('script[src*="recaptcha"]');
   scripts.forEach(script => script.remove());
 
   // 2. Remove recaptcha iframe container and badge elements from DOM
@@ -105,6 +105,9 @@ export async function executeRecaptcha(action: string): Promise<string | null> {
   if (typeof window === 'undefined') {
     return null;
   }
+
+  // Wipes out any pre-loaded recaptcha scripts (e.g. standard api.js) to avoid namespace conflicts
+  cleanupEnterpriseRecaptcha();
 
   try {
     // Dynamically load the script
