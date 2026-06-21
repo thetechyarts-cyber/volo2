@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ConfirmationResult } from 'firebase/auth';
 import { sendOtp, verifyOtp } from '@/lib/firebase-client';
+import { cleanupEnterpriseRecaptcha } from '@/lib/recaptcha-client';
 import { 
   Briefcase, User, Phone, ShieldCheck, Clock, CheckCircle2, 
   AlertCircle, ChevronRight, Loader2, Sparkles, Lock, 
@@ -59,12 +60,12 @@ export default function HomeLandingPage() {
     }
 
     try {
+      cleanupEnterpriseRecaptcha();
       console.log("Sending OTP to:", formattedPhone);
       const result = await sendOtp(formattedPhone);
       confirmationResultRef.current = result;
       setAuthSuccess('Code sent successfully.');
       setAuthStep('OTP');
-
     } catch (err: unknown) {
       console.error(err);
       const firebaseError = err as { code?: string };
