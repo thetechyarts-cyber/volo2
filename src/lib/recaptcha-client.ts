@@ -96,6 +96,16 @@ export function cleanupEnterpriseRecaptcha(): void {
  * @returns Generated assessment token, or null if execution failed
  */
 export async function executeRecaptcha(action: string): Promise<string | null> {
+  const isBypassRequested = process.env.NEXT_PUBLIC_ALLOW_RECAPTCHA_BYPASS === 'true';
+  const isNotProduction = process.env.NODE_ENV !== 'production';
+  const isLocalhost = typeof window !== 'undefined' && 
+    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+  if (isNotProduction && (isBypassRequested || isLocalhost)) {
+    console.log('[reCAPTCHA] Dev/local bypass active. Returning developer secret token.');
+    return 'BYPASS_TOKEN_VOLO_DEV_SECRET';
+  }
+
   const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
   if (!siteKey) {
     console.warn('[reCAPTCHA] Site key (NEXT_PUBLIC_RECAPTCHA_SITE_KEY) is missing. Bypassing client-side token.');
