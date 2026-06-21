@@ -169,12 +169,15 @@ export async function POST(request: Request) {
       devFetchErr = fetchRes.error;
     }
 
-    if (!devFetchErr && devices && devices.length >= 5) {
-      // Deactivate oldest device to make room
+    if (!devFetchErr && devices && devices.length >= 3) {
+      // Enforce max 3 active devices per user. To add 1 new device,
+      // we must have at most 2 existing active devices.
+      const deactivateCount = devices.length - 2;
+      const deviceIdsToDeactivate = devices.slice(0, deactivateCount).map(d => d.id);
       await supabaseAdmin
         .from('trusted_devices')
         .update({ is_active: false })
-        .eq('id', devices[0].id);
+        .in('id', deviceIdsToDeactivate);
     }
 
     const clientIp = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || '127.0.0.1';
