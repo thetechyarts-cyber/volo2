@@ -166,6 +166,8 @@ export async function POST(request: Request) {
       maxAge: 60 * 60 * 24 * 7 // 7 days
     });
 
+    const existingPinHash = existingUser ? existingUser.pin_hash : null;
+
     const response = NextResponse.json({
       success: true,
       isNewUser,
@@ -175,7 +177,9 @@ export async function POST(request: Request) {
         role,
         full_name: current_full_name,
         phone
-      }
+      },
+      pinSet: !!existingPinHash,
+      promptPinSetup: !existingPinHash
     });
 
     response.headers.set('Set-Cookie', serializedCookie);

@@ -39,10 +39,12 @@ export default function HomeLandingPage() {
   const [selectedRole, setSelectedRole] = useState<'customer' | 'worker'>('customer');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [otpValue, setOtpValue] = useState('');
-  const [authStep, setAuthStep] = useState<'PHONE' | 'OTP'>('PHONE');
+  const [authStep, setAuthStep] = useState<'PHONE' | 'OTP' | 'SET_PIN'>('PHONE');
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [authSuccess, setAuthSuccess] = useState<string | null>(null);
+  const [pinSetup, setPinSetup] = useState('');
+  const [redirectToUrl, setRedirectToUrl] = useState('');
 
   const confirmationResultRef = useRef<ConfirmationResult | null>(null);
 
@@ -121,8 +123,13 @@ export default function HomeLandingPage() {
         return;
       }
 
-      setAuthSuccess('Login successful! Redirecting...');
-      window.location.replace(data.redirectTo || (selectedRole === 'worker' ? '/worker/dashboard' : '/customer/dashboard'));
+      if (data.promptPinSetup) {
+        setRedirectToUrl(data.redirectTo || (selectedRole === 'worker' ? '/worker/dashboard' : '/customer/dashboard'));
+        setAuthStep('SET_PIN');
+      } else {
+        setAuthSuccess('Login successful! Redirecting...');
+        window.location.replace(data.redirectTo || (selectedRole === 'worker' ? '/worker/dashboard' : '/customer/dashboard'));
+      }
     } catch (err: unknown) {
       console.error(err);
       const firebaseError = err as { code?: string };
@@ -134,6 +141,42 @@ export default function HomeLandingPage() {
         setAuthError('Incorrect OTP code.');
       }
     } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleSetPin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError(null);
+    setAuthSuccess(null);
+    setAuthLoading(true);
+
+    if (pinSetup.length < 4) {
+      setAuthError('PIN must be at least 4 digits');
+      setAuthLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/auth/set-pin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pin: pinSetup })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setAuthError(data.error || 'Failed to set PIN. Please try again.');
+        setAuthLoading(false);
+        return;
+      }
+
+      setAuthSuccess('PIN configured successfully! Redirecting...');
+      window.location.replace(redirectToUrl || (selectedRole === 'worker' ? '/worker/dashboard' : '/customer/dashboard'));
+    } catch (err) {
+      console.error(err);
+      setAuthError('Failed to set PIN. Please try again.');
       setAuthLoading(false);
     }
   };
@@ -1154,48 +1197,54 @@ export default function HomeLandingPage() {
             <div className="flex flex-col items-center text-center space-y-2 pb-2">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/images/logo.jpeg" alt="VOLO Logo" className="h-14 w-auto object-contain rounded-2xl shadow-sm border border-slate-100" />
-              <h2 className="text-xl font-black text-slate-900 tracking-tight font-display">Access Account Console</h2>
-              <p className="text-xs text-slate-400">Select portal role and verify mobile OTP</p>
+              <h2 className="text-xl font-black text-slate-900 tracking-tight font-display">
+                {authStep === 'SET_PIN' ? 'Secure Your Account' : 'Access Account Console'}
+              </h2>
+              <p className="text-xs text-slate-400">
+                {authStep === 'SET_PIN' ? 'Create a secure PIN for quick access' : 'Select portal role and verify mobile OTP'}
+              </p>
             </div>
 
             {/* Tab Selector */}
-            <div className="flex border border-slate-200 p-1 bg-slate-100 rounded-2xl mt-4 select-none">
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedRole('customer');
-                  setAuthStep('PHONE');
-                  setAuthError(null);
-                  setAuthSuccess(null);
-                }}
-                className={`flex-1 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer flex justify-center items-center gap-1.5 ${
-                  selectedRole === 'customer'
-                    ? 'bg-white text-[#FF7A00] shadow-sm border border-slate-200/60'
-                    : 'text-slate-500 hover:text-slate-700'
-                }`}
-              >
-                <User className="h-3.5 w-3.5" />
-                Customer
-              </button>
+            {authStep !== 'SET_PIN' && (
+              <div className="flex border border-slate-200 p-1 bg-slate-100 rounded-2xl mt-4 select-none">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedRole('customer');
+                    setAuthStep('PHONE');
+                    setAuthError(null);
+                    setAuthSuccess(null);
+                  }}
+                  className={`flex-1 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer flex justify-center items-center gap-1.5 ${
+                    selectedRole === 'customer'
+                      ? 'bg-white text-[#FF7A00] shadow-sm border border-slate-200/60'
+                      : 'text-slate-500 hover:text-slate-700'
+                  }`}
+                >
+                  <User className="h-3.5 w-3.5" />
+                  Customer
+                </button>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedRole('worker');
-                  setAuthStep('PHONE');
-                  setAuthError(null);
-                  setAuthSuccess(null);
-                }}
-                className={`flex-1 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer flex justify-center items-center gap-1.5 ${
-                  selectedRole === 'worker'
-                    ? 'bg-white text-[#FF7A00] shadow-sm border border-slate-200/60'
-                    : 'text-slate-500 hover:text-slate-700'
-                }`}
-              >
-                <Briefcase className="h-3.5 w-3.5" />
-                Partner
-              </button>
-            </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedRole('worker');
+                    setAuthStep('PHONE');
+                    setAuthError(null);
+                    setAuthSuccess(null);
+                  }}
+                  className={`flex-1 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer flex justify-center items-center gap-1.5 ${
+                    selectedRole === 'worker'
+                      ? 'bg-white text-[#FF7A00] shadow-sm border border-slate-200/60'
+                      : 'text-slate-500 hover:text-slate-700'
+                  }`}
+                >
+                  <Briefcase className="h-3.5 w-3.5" />
+                  Partner
+                </button>
+              </div>
+            )}
 
             {/* Error alerts logs */}
             {authError && (
@@ -1213,7 +1262,7 @@ export default function HomeLandingPage() {
             )}
 
             {/* Form layout */}
-            {authStep === 'PHONE' ? (
+            {authStep === 'PHONE' && (
               <form onSubmit={handleSendOtp} className="space-y-4 mt-6">
                 <div className="space-y-2">
                   <label className="text-[10px] font-extrabold uppercase text-slate-450 tracking-wider flex items-center gap-1.5">
@@ -1249,10 +1298,12 @@ export default function HomeLandingPage() {
                   )}
                 </button>
               </form>
-            ) : (
+            )}
+
+            {authStep === 'OTP' && (
               <form onSubmit={handleVerifyOtp} className="space-y-4 mt-6">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-extrabold uppercase text-slate-450 tracking-wider flex items-center gap-1.5">
+                  <label className="text-[10px] font-extrabold uppercase text-slate-455 tracking-wider flex items-center gap-1.5">
                     <Lock className="h-4 w-4 text-[#FF7A00]" />
                     Enter 6-Digit SMS Code
                   </label>
@@ -1293,6 +1344,42 @@ export default function HomeLandingPage() {
                 </button>
               </form>
             )}
+
+            {authStep === 'SET_PIN' && (
+              <form onSubmit={handleSetPin} className="space-y-4 mt-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-extrabold uppercase text-slate-455 tracking-wider flex items-center gap-1.5">
+                    <Lock className="h-4 w-4 text-[#FF7A00]" />
+                    Create a Secure Login PIN
+                  </label>
+                  <p className="text-[11px] text-slate-500 pb-1 leading-relaxed">
+                    Choose a 4 to 6 digit PIN. You will use this PIN to log in next time on recognized devices.
+                  </p>
+                  <input
+                    type="password"
+                    maxLength={6}
+                    placeholder="••••"
+                    value={pinSetup}
+                    onChange={(e) => setPinSetup(e.target.value.replace(/\D/g, ''))}
+                    className="w-full bg-slate-50 border border-slate-200 focus:border-[#FF7A00] focus:ring-4 focus:ring-orange-100 text-center tracking-[0.6em] font-mono text-sm rounded-2xl px-3 py-3 outline-none transition-colors font-extrabold text-slate-800"
+                    required
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={authLoading || pinSetup.length < 4}
+                  className="w-full bg-[#FF7A00] hover:bg-orange-600 disabled:bg-orange-400 text-white font-extrabold rounded-2xl py-3.5 text-xs uppercase tracking-wider transition-colors flex justify-center items-center gap-1.5 select-none cursor-pointer shadow-sm hover-scale-btn"
+                >
+                  {authLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    'Set PIN & Continue'
+                  )}
+                </button>
+              </form>
+            )}
+
 
           </div>
         </div>
