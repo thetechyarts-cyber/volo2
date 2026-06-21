@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function AdminLoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -36,7 +38,7 @@ export default function AdminLoginPage() {
         return;
       }
 
-      window.location.href = data.redirectTo || '/admin/dashboard';
+      router.push(data.redirectTo || '/admin/dashboard');
     } catch (err) {
       console.error(err);
       setErrorMsg('Invalid email or password.');

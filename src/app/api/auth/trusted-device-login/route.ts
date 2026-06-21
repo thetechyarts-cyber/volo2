@@ -51,9 +51,9 @@ export async function POST(request: Request) {
       .maybeSingle();
 
     if (deviceError || !device) {
-      await logAuthEvent(user.id, formattedPhone, 'device_login_failed', 'trusted_device', request, null, {
+      logAuthEvent(user.id, formattedPhone, 'device_login_failed', 'trusted_device', request, null, {
         reason: 'device_not_recognized'
-      });
+      }).catch(err => console.error('[Trusted Device Login] Logging error:', err));
       return NextResponse.json({ success: false, reason: 'device_not_recognized' }, { status: 401, headers: cacheHeaders });
     }
 
@@ -113,10 +113,10 @@ export async function POST(request: Request) {
       redirectTo = workerProfile?.kyc_status === 'APPROVED' ? '/worker/dashboard' : '/worker/kyc';
     }
 
-    // Log success
-    await logAuthEvent(user.id, formattedPhone, 'device_login', 'trusted_device', request, device.id, {
+    // Log success (asynchronously, do not block response)
+    logAuthEvent(user.id, formattedPhone, 'device_login', 'trusted_device', request, device.id, {
       status: 'success'
-    });
+    }).catch(err => console.error('[Trusted Device Login] Logging error:', err));
 
     const response = NextResponse.json({
       success: true,

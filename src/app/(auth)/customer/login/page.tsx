@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { ConfirmationResult, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink } from 'firebase/auth';
 import { firebaseAuth, sendOtp, verifyOtp } from '@/lib/firebase-client';
 import { executeRecaptcha, cleanupEnterpriseRecaptcha } from '@/lib/recaptcha-client';
@@ -37,6 +37,7 @@ function getDeviceName() {
 
 function CustomerLoginInner() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const refCode = searchParams.get('ref') || null;
   const [phoneNumber, setPhoneNumber] = useState('');
   const [otp, setOtp] = useState('');
@@ -80,7 +81,7 @@ function CustomerLoginInner() {
               if (data.deviceToken) {
                 localStorage.setItem('volo_device_token', data.deviceToken);
               }
-              window.location.href = data.redirectTo || '/customer/dashboard';
+              router.push(data.redirectTo || '/customer/dashboard');
             } else {
               setErrorMsg(data.error || 'Email link authentication failed');
               setLoading(false);
@@ -172,7 +173,7 @@ function CustomerLoginInner() {
           if (loginData.newDeviceToken) {
             localStorage.setItem('volo_device_token', loginData.newDeviceToken);
           }
-          window.location.href = loginData.redirectTo || '/customer/dashboard';
+          router.push(loginData.redirectTo || '/customer/dashboard');
         } else {
           await triggerFirebaseOtp(formattedPhone);
         }
@@ -233,7 +234,7 @@ function CustomerLoginInner() {
         localStorage.setItem('volo_device_token', data.deviceToken);
       }
 
-      window.location.href = data.redirectTo || '/customer/dashboard';
+      router.push(data.redirectTo || '/customer/dashboard');
     } catch (err: any) {
       console.error(err);
       if (err.code === 'auth/invalid-verification-code') {
@@ -275,7 +276,7 @@ function CustomerLoginInner() {
         return;
       }
 
-      window.location.href = data.redirectTo || '/customer/dashboard';
+      router.push(data.redirectTo || '/customer/dashboard');
     } catch (err) {
       console.error(err);
       setErrorMsg('Incorrect PIN. Please try again.');

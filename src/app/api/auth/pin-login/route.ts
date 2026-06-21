@@ -90,13 +90,13 @@ export async function POST(request: Request) {
         })
         .eq('id', user.id);
 
-      await logAuthEvent(user.id, formattedPhone, 'pin_failed', 'pin', request, null, {
+      logAuthEvent(user.id, formattedPhone, 'pin_failed', 'pin', request, null, {
         attempts: newAttempts,
         locked: !!lockUntil
-      });
+      }).catch(err => console.error('[PIN Login] Logging error:', err));
 
       if (lockUntil) {
-        await logAuthEvent(user.id, formattedPhone, 'pin_locked', 'pin', request);
+        logAuthEvent(user.id, formattedPhone, 'pin_locked', 'pin', request).catch(err => console.error('[PIN Login] Logging error:', err));
       }
 
       const remaining = Math.max(0, 5 - (newAttempts % 5));
@@ -147,8 +147,8 @@ export async function POST(request: Request) {
       redirectTo = workerProfile?.kyc_status === 'APPROVED' ? '/worker/dashboard' : '/worker/kyc';
     }
 
-    // 8. Log success
-    await logAuthEvent(user.id, formattedPhone, 'pin_verified', 'pin', request);
+    // 8. Log success (asynchronously, do not block response)
+    logAuthEvent(user.id, formattedPhone, 'pin_verified', 'pin', request).catch(err => console.error('[PIN Login] Logging error:', err));
 
     const response = NextResponse.json({
       success: true,

@@ -123,28 +123,6 @@ export async function POST(request: Request) {
           console.warn('Referral processing failed (non-fatal):', refErr);
         }
       }
-    } else {
-      // Existing user
-      user_id = existingUser.id;
-      is_active = existingUser.is_active;
-      is_suspended = existingUser.is_suspended;
-      current_full_name = existingUser.full_name || '';
-      existing_pin_hash = existingUser.pin_hash;
-
-      // Check if role matches
-      if (existingUser.role !== role) {
-        return NextResponse.json({ error: 'UNAUTHORIZED_ROLE' }, { status: 403, headers: cacheHeaders });
-      }
-
-      // Update user details
-      await supabaseAdmin
-        .from('users')
-        .update({
-          firebase_uid,
-          phone_verified: true,
-          last_login_at: new Date().toISOString()
-        })
-        .eq('id', user_id);
     }
 
     // 3. Verify Account Status
@@ -156,13 +134,40 @@ export async function POST(request: Request) {
     const deviceToken = crypto.randomUUID();
     const deviceTokenHash = crypto.createHash('sha256').update(deviceToken).digest('hex');
 
-    // Enforce max 5 devices per user
-    const { data: devices, error: devFetchErr } = await supabaseAdmin
-      .from('trusted_devices')
-      .select('id')
-      .eq('user_id', user_id)
-      .eq('is_active', true)
-      .order('last_used_at', { ascending: true });
+    // Execute user update (if existing user) and trusted devices fetch in parallel
+    let devices: any[] | null = null;
+    let devFetchErr: any = null;
+
+    if (!existingUser) {
+      const { data, error } = await supabaseAdmin
+        .from('trusted_devices')
+        .select('id')
+        .eq('user_id', user_id)
+        .eq('is_active', true)
+        .order('last_used_at', { ascending: true });
+      devices = data;
+      devFetchErr = error;
+    } else {
+      const updatePromise = supabaseAdmin
+        .from('users')
+        .update({
+          firebase_uid,
+          phone_verified: true,
+          last_login_at: new Date().toISOString()
+        })
+        .eq('id', user_id);
+
+      const devicesFetchPromise = supabaseAdmin
+        .from('trusted_devices')
+        .select('id')
+        .eq('user_id', user_id)
+        .eq('is_active', true)
+        .order('last_used_at', { ascending: true });
+
+      const [_, fetchRes] = await Promise.all([updatePromise, devicesFetchPromise]);
+      devices = fetchRes.data;
+      devFetchErr = fetchRes.error;
+    }
 
     if (!devFetchErr && devices && devices.length >= 5) {
       // Deactivate oldest device to make room
@@ -213,9 +218,13 @@ export async function POST(request: Request) {
       redirectTo = workerProfile?.kyc_status === 'APPROVED' ? '/worker/dashboard' : '/worker/kyc';
     }
 
-    // 7. Log auth events
-    await logAuthEvent(user_id, formattedPhone, 'otp_verified', 'firebase_otp', request, newDevice?.id);
-    await logAuthEvent(user_id, formattedPhone, 'device_registered', 'firebase_otp', request, newDevice?.id);
+    // 7. Log auth events (asynchronously, do not block response)
+    Promise.all([
+      logAuthEvent(user_id, formattedPhone, 'otp_verified', 'firebase_otp', request, newDevice?.id),
+      logAuthEvent(user_id, formattedPhone, 'device_registered', 'firebase_otp', request, newDevice?.id)
+    ]).catch(err => {
+      console.error('[Verify Token] Failed logging auth events (non-fatal):', err);
+    });
 
     // 8. Return response and set cookies
     const response = NextResponse.json({

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { ConfirmationResult, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink } from 'firebase/auth';
 import { firebaseAuth, sendOtp, verifyOtp } from '@/lib/firebase-client';
 import { executeRecaptcha, cleanupEnterpriseRecaptcha } from '@/lib/recaptcha-client';
@@ -36,6 +36,7 @@ function getDeviceName() {
 
 function WorkerLoginInner() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const refCode = searchParams.get('ref') || null;
   const [phoneNumber, setPhoneNumber] = useState('');
   const [otp, setOtp] = useState('');
@@ -79,7 +80,7 @@ function WorkerLoginInner() {
               if (data.deviceToken) {
                 localStorage.setItem('volo_device_token', data.deviceToken);
               }
-              window.location.href = data.redirectTo || '/worker/kyc';
+              router.push(data.redirectTo || '/worker/kyc');
             } else {
               setErrorMsg(data.error || 'Email link authentication failed');
               setLoading(false);
@@ -171,7 +172,7 @@ function WorkerLoginInner() {
           if (loginData.newDeviceToken) {
             localStorage.setItem('volo_device_token', loginData.newDeviceToken);
           }
-          window.location.href = loginData.redirectTo || '/worker/kyc';
+          router.push(loginData.redirectTo || '/worker/kyc');
         } else {
           await triggerFirebaseOtp(formattedPhone);
         }
@@ -232,7 +233,7 @@ function WorkerLoginInner() {
         localStorage.setItem('volo_device_token', data.deviceToken);
       }
 
-      window.location.href = data.redirectTo || '/worker/kyc';
+      router.push(data.redirectTo || '/worker/kyc');
     } catch (err: any) {
       console.error(err);
       if (err.code === 'auth/invalid-verification-code') {
@@ -274,7 +275,7 @@ function WorkerLoginInner() {
         return;
       }
 
-      window.location.href = data.redirectTo || '/worker/kyc';
+      router.push(data.redirectTo || '/worker/kyc');
     } catch (err) {
       console.error(err);
       setErrorMsg('Incorrect PIN. Please try again.');
