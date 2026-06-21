@@ -438,19 +438,50 @@ aside {
 
 /* Active sidebar item white text and icon */
 aside a.bg-gradient-to-r span,
-aside a.bg-gradient-to-r svg {
+aside a.bg-gradient-to-r svg,
+aside a[class*="bg-gradient"] span,
+aside a[class*="bg-gradient"] svg {
   color: #ffffff !important;
 }
+aside a.bg-gradient-to-r,
+aside a[class*="bg-gradient"] {
+  background: linear-gradient(to right, #ff8a00, #ff9f2e) !important;
+}
 
-/* Hovered sidebar item text and icon */
-aside a:hover {
-  background-color: #172033 !important; /* Keep dark background on hover */
+/* Hovered sidebar item text and icon (Light Theme Sidebar) */
+aside a:hover,
+aside a:focus {
+  background-color: rgba(255, 122, 0, 0.08) !important; /* Premium light orange background on hover */
+  background-image: none !important;
 }
-aside a:hover span {
-  color: #ffffff !important; /* White text on hover */
+aside a:hover span,
+aside a:focus span {
+  color: #ff7800 !important; /* Brand orange text on hover */
 }
-aside a:hover svg {
-  color: #ff7800 !important; /* Keep brand orange color on hover */
+aside a:hover svg,
+aside a:focus svg {
+  color: #ff7800 !important; /* Brand orange icon on hover */
+}
+
+/* Dropdown navigation menus hover contrast (For Customer, Worker & Admin Dropdowns) */
+div[class*="bg-[#0F172A]"] a:hover,
+div[class*="bg-[#0F172A]"] button:hover,
+div[class*="bg-[#0F172A]"] a:focus,
+div[class*="bg-[#0F172A]"] button:focus {
+  background-color: rgba(255, 122, 0, 0.08) !important; /* Light orange background on hover */
+}
+div[class*="bg-[#0F172A]"] a:hover span,
+div[class*="bg-[#0F172A]"] button:hover span,
+div[class*="bg-[#0F172A]"] a:hover p,
+div[class*="bg-[#0F172A]"] button:hover p,
+div[class*="bg-[#0F172A]"] a:hover svg,
+div[class*="bg-[#0F172A]"] button:hover svg {
+  color: #ff7800 !important; /* Brand orange text/icons on hover */
+}
+/* Handle plain text links inside the dropdown menus */
+div[class*="bg-[#0F172A]"] a:hover,
+div[class*="bg-[#0F172A]"] button:hover {
+  color: #ff7800 !important;
 }
 
 /* Dark gradient card text contrast overrides */
