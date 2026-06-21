@@ -430,3 +430,54 @@ aside {
 .animate-spin {
   border-top-color: #ff7800 !important;
 }
+
+/* ==========================================
+   VISIBILITY OVERRIDES FOR ACTIVE/HOVERED 
+   DARK CONTAINERS AND SIDEBAR ITEMS
+   ========================================== */
+
+/* Active sidebar item white text and icon */
+aside a.bg-gradient-to-r span,
+aside a.bg-gradient-to-r svg {
+  color: #ffffff !important;
+}
+
+/* Hovered sidebar item text and icon */
+aside a:hover {
+  background-color: #172033 !important; /* Keep dark background on hover */
+}
+aside a:hover span {
+  color: #ffffff !important; /* White text on hover */
+}
+aside a:hover svg {
+  color: #ff7800 !important; /* Keep brand orange color on hover */
+}
+
+/* Dark gradient card text contrast overrides */
+div[class*="bg-gradient-to-r"][class*="from-[#1E293B]"] h1,
+div[class*="bg-gradient-to-r"][class*="from-[#1E293B]"] .text-white,
+div[class*="bg-gradient-to-r"][class*="from-[#1E293B]"] span.text-white {
+  color: #ffffff !important;
+}
+div[class*="bg-gradient-to-r"][class*="from-[#1E293B]"] p,
+div[class*="bg-gradient-to-r"][class*="from-[#1E293B]"] .text-slate-400 {
+  color: #cbd5e1 !important;
+}
+div[class*="bg-gradient-to-r"][class*="from-[#1E293B]"] .text-slate-500 {
+  color: #94a3b8 !important;
+}
+
+/* Ensure Platform Health inner widget in the banner remains dark with light text */
+div[class*="bg-gradient-to-r"][class*="from-[#1E293B]"] div.bg-\[\#111827\] {
+  background-color: #111827 !important;
+  border-color: #1f2937 !important;
+}
+div[class*="bg-gradient-to-r"][class*="from-[#1E293B]"] div.bg-\[\#111827\] span.text-white {
+  color: #ffffff !important;
+}
+div[class*="bg-gradient-to-r"][class*="from-[#1E293B]"] div.bg-\[\#111827\] span.text-slate-500 {
+  color: #94a3b8 !important;
+}
+div[class*="bg-gradient-to-r"][class*="from-[#1E293B]"] div.bg-\[\#111827\] span.text-slate-400 {
+  color: #cbd5e1 !important;
+}
