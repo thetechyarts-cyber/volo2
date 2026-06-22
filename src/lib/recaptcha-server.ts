@@ -27,7 +27,7 @@ export async function verifyRecaptchaToken(
   const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'volohome-16448';
   // Use server-only key for API request
   const apiKey = process.env.RECAPTCHA_SERVER_API_KEY;
-  const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6LcHmCktAAAAAG3Mklo2rxIpQvqi3dbFXPOs4eeb';
+  const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6Ld_ASgtAAAAAP5S1xWBhboAdhtZs0XT5dGVshQA';
 
   if (!apiKey) {
     console.error('[reCAPTCHA Server] GCP Server API key (RECAPTCHA_SERVER_API_KEY) is not defined in environment variables.');
