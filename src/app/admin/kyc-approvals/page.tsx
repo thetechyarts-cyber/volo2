@@ -105,76 +105,78 @@ export default function AdminKycApprovalsPage() {
         <LoadingSkeleton rows={5} cols={3} />
       ) : filteredWorkers.length > 0 ? (
         <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-lg">
-          <table className="w-full text-left border-collapse text-xs">
-            <thead>
-              <tr className="border-b border-slate-800 bg-slate-950/40 text-slate-400 font-semibold uppercase tracking-wider select-none">
-                <th className="p-4">Technician Details</th>
-                <th className="p-4">Experience Stats</th>
-                <th className="p-4">Submission Status</th>
-                <th className="p-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800/40">
-              {filteredWorkers.map((worker) => (
-                <tr key={worker.id} className="hover:bg-slate-950/20 transition-colors">
-                  
-                  {/* Name and Phone details */}
-                  <td className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="h-9 w-9 rounded-full bg-slate-850 border border-slate-700 flex items-center justify-center font-bold text-rose-400 text-sm select-none">
-                        {worker.full_name?.charAt(0) || 'T'}
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="border-b border-slate-800 bg-slate-950/40 text-slate-400 font-semibold uppercase tracking-wider select-none">
+                  <th className="p-4">Technician Details</th>
+                  <th className="p-4">Experience Stats</th>
+                  <th className="p-4">Submission Status</th>
+                  <th className="p-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/40">
+                {filteredWorkers.map((worker) => (
+                  <tr key={worker.id} className="hover:bg-slate-950/20 transition-colors">
+                    
+                    {/* Name and Phone details */}
+                    <td className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="h-9 w-9 rounded-full bg-slate-850 border border-slate-700 flex items-center justify-center font-bold text-rose-400 text-sm select-none">
+                          {worker.full_name?.charAt(0) || 'T'}
+                        </div>
+                        <div className="space-y-0.5">
+                          <span className="font-bold text-slate-200 block">{worker.full_name}</span>
+                          <span className="text-slate-500 font-medium flex items-center gap-1">
+                            <Phone className="h-3 w-3" />
+                            {worker.phone}
+                          </span>
+                        </div>
                       </div>
-                      <div className="space-y-0.5">
-                        <span className="font-bold text-slate-200 block">{worker.full_name}</span>
-                        <span className="text-slate-500 font-medium flex items-center gap-1">
-                          <Phone className="h-3 w-3" />
-                          {worker.phone}
+                    </td>
+
+                    {/* Rating / Jobs */}
+                    <td className="p-4">
+                      <div className="space-y-1">
+                        <span className="text-slate-200 font-semibold flex items-center gap-1.5">
+                          <Star className="h-3.5 w-3.5 text-amber-400 fill-amber-400/20" />
+                          {Number(worker.rating).toFixed(2)} Rating
+                        </span>
+                        <span className="text-slate-500 font-medium flex items-center gap-1.5">
+                          <Briefcase className="h-3.5 w-3.5" />
+                          {worker.total_jobs} Completed Jobs
                         </span>
                       </div>
-                    </div>
-                  </td>
+                    </td>
 
-                  {/* Rating / Jobs */}
-                  <td className="p-4">
-                    <div className="space-y-1">
-                      <span className="text-slate-200 font-semibold flex items-center gap-1.5">
-                        <Star className="h-3.5 w-3.5 text-amber-400 fill-amber-400/20" />
-                        {Number(worker.rating).toFixed(2)} Rating
-                      </span>
-                      <span className="text-slate-500 font-medium flex items-center gap-1.5">
-                        <Briefcase className="h-3.5 w-3.5" />
-                        {worker.total_jobs} Completed Jobs
-                      </span>
-                    </div>
-                  </td>
+                    {/* Joined Date and KYC state */}
+                    <td className="p-4">
+                      <div className="space-y-1.5">
+                        <StatusBadge status={worker.kyc_status} />
+                        <span className="text-slate-500 flex items-center gap-1 text-[10px]">
+                          <Clock className="h-3 w-3" />
+                          Applied: {new Date(worker.created_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </td>
 
-                  {/* Joined Date and KYC state */}
-                  <td className="p-4">
-                    <div className="space-y-1.5">
-                      <StatusBadge status={worker.kyc_status} />
-                      <span className="text-slate-500 flex items-center gap-1 text-[10px]">
-                        <Clock className="h-3 w-3" />
-                        Applied: {new Date(worker.created_at).toLocaleDateString()}
-                      </span>
-                    </div>
-                  </td>
+                    {/* View Details Redirect button */}
+                    <td className="p-4 text-right">
+                      <button
+                        type="button"
+                        onClick={() => router.push(`/admin/workers/${worker.id}`)}
+                        className="px-3 py-1.5 bg-slate-850 hover:bg-slate-800 border border-slate-800 hover:border-slate-750 text-slate-300 hover:text-white rounded-lg text-xs font-semibold inline-flex items-center gap-1 transition-all cursor-pointer hover:translate-x-0.5"
+                      >
+                        Review Profile
+                        <ArrowRight className="h-3.5 w-3.5 text-rose-500" />
+                      </button>
+                    </td>
 
-                  {/* View Details Redirect button */}
-                  <td className="p-4 text-right">
-                    <button
-                      type="button"
-                      onClick={() => router.push(`/admin/workers/${worker.id}`)}
-                      className="px-3 py-1.5 bg-slate-850 hover:bg-slate-800 border border-slate-800 hover:border-slate-750 text-slate-300 hover:text-white rounded-lg text-xs font-semibold inline-flex items-center gap-1 transition-all cursor-pointer hover:translate-x-0.5"
-                    >
-                      Review Profile
-                      <ArrowRight className="h-3.5 w-3.5 text-rose-500" />
-                    </button>
-                  </td>
-
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       ) : (
         <div className="border border-slate-800 bg-slate-900/50 rounded-xl p-12 text-center select-none">

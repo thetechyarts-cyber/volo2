@@ -239,75 +239,77 @@ export default function AdminPerformanceDashboard() {
                                         </div>
                                     ) : (
                                         <div className="border border-slate-800 rounded-xl overflow-hidden">
-                                            <table className="w-full text-xs">
-                                                <thead>
-                                                    <tr className="bg-slate-950/50 border-b border-slate-800">
-                                                        {['Referrer', 'Referred User', 'Code', 'Role', 'Reward', 'Status', 'Date', 'Action'].map(h => (
-                                                            <th key={h} className="px-3 py-2.5 text-left text-[10px] font-bold uppercase text-slate-500 tracking-wider">{h}</th>
-                                                        ))}
-                                                    </tr>
-                                                </thead>
-                                                <tbody className="divide-y divide-slate-800/50">
-                                                    {referrals.map((ref: any) => (
-                                                        <tr key={ref.id} className="hover:bg-slate-800/20 transition-colors">
-                                                            <td className="px-3 py-2.5">
-                                                                <p className="font-bold text-white">{ref.referrer?.full_name || '—'}</p>
-                                                                <p className="text-slate-500 text-[10px] font-mono">{ref.referrer?.phone}</p>
-                                                            </td>
-                                                            <td className="px-3 py-2.5">
-                                                                <p className="font-bold text-slate-300">{ref.referred?.full_name || '—'}</p>
-                                                                <p className="text-slate-500 text-[10px] font-mono">{ref.referred?.phone}</p>
-                                                            </td>
-                                                            <td className="px-3 py-2.5">
-                                                                <span className="font-mono text-[10px] text-slate-400">{ref.referral_code}</span>
-                                                            </td>
-                                                            <td className="px-3 py-2.5">
-                                                                <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border capitalize ${
-                                                                    ref.role === 'customer' ? 'bg-blue-900/20 text-blue-400 border-blue-900/40' : 'bg-amber-900/20 text-amber-400 border-amber-900/40'
-                                                                }`}>{ref.role}</span>
-                                                            </td>
-                                                            <td className="px-3 py-2.5">
-                                                                <span className="font-bold text-emerald-400">₹{ref.reward_amount}</span>
-                                                            </td>
-                                                            <td className="px-3 py-2.5">
-                                                                <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${
-                                                                    ref.status === 'REWARDED' ? 'bg-emerald-900/20 text-emerald-400 border-emerald-900/40' :
-                                                                    ref.status === 'QUALIFIED' ? 'bg-blue-900/20 text-blue-400 border-blue-900/40' :
-                                                                    'bg-amber-900/20 text-amber-400 border-amber-900/40'
-                                                                }`}>{ref.status}</span>
-                                                            </td>
-                                                            <td className="px-3 py-2.5 text-slate-500">
-                                                                {new Date(ref.created_at).toLocaleDateString()}
-                                                            </td>
-                                                            <td className="px-3 py-2.5">
-                                                                {ref.status !== 'REWARDED' && (
-                                                                    <button
-                                                                        disabled={rewardingId === ref.id}
-                                                                        onClick={async () => {
-                                                                            setRewardingId(ref.id);
-                                                                            try {
-                                                                                await fetch('/api/admin/referrals', {
-                                                                                    method: 'PATCH',
-                                                                                    headers: { 'Content-Type': 'application/json' },
-                                                                                    body: JSON.stringify({ referral_id: ref.id }),
-                                                                                });
-                                                                                const r = await fetch('/api/admin/referrals');
-                                                                                if (r.ok) setReferrals((await r.json()).referrals || []);
-                                                                            } finally {
-                                                                                setRewardingId(null);
-                                                                            }
-                                                                        }}
-                                                                        className="px-2 py-1 bg-emerald-700 hover:bg-emerald-600 disabled:opacity-50 text-white text-[9px] font-black rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
-                                                                    >
-                                                                        {rewardingId === ref.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle className="w-3 h-3" />}
-                                                                        {rewardingId === ref.id ? '...' : 'Mark Rewarded'}
-                                                                    </button>
-                                                                )}
-                                                            </td>
+                                            <div className="overflow-x-auto">
+                                                <table className="w-full text-xs">
+                                                    <thead>
+                                                        <tr className="bg-slate-950/50 border-b border-slate-800">
+                                                            {['Referrer', 'Referred User', 'Code', 'Role', 'Reward', 'Status', 'Date', 'Action'].map(h => (
+                                                                <th key={h} className="px-3 py-2.5 text-left text-[10px] font-bold uppercase text-slate-500 tracking-wider">{h}</th>
+                                                            ))}
                                                         </tr>
-                                                    ))}
-                                                </tbody>
-                                            </table>
+                                                    </thead>
+                                                    <tbody className="divide-y divide-slate-800/50">
+                                                        {referrals.map((ref: any) => (
+                                                            <tr key={ref.id} className="hover:bg-slate-800/20 transition-colors">
+                                                                <td className="px-3 py-2.5">
+                                                                    <p className="font-bold text-white">{ref.referrer?.full_name || '—'}</p>
+                                                                    <p className="text-slate-500 text-[10px] font-mono">{ref.referrer?.phone}</p>
+                                                                </td>
+                                                                <td className="px-3 py-2.5">
+                                                                    <p className="font-bold text-slate-300">{ref.referred?.full_name || '—'}</p>
+                                                                    <p className="text-slate-500 text-[10px] font-mono">{ref.referred?.phone}</p>
+                                                                </td>
+                                                                <td className="px-3 py-2.5">
+                                                                    <span className="font-mono text-[10px] text-slate-400">{ref.referral_code}</span>
+                                                                </td>
+                                                                <td className="px-3 py-2.5">
+                                                                    <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border capitalize ${
+                                                                        ref.role === 'customer' ? 'bg-blue-900/20 text-blue-400 border-blue-900/40' : 'bg-amber-900/20 text-amber-400 border-amber-900/40'
+                                                                    }`}>{ref.role}</span>
+                                                                </td>
+                                                                <td className="px-3 py-2.5">
+                                                                    <span className="font-bold text-emerald-400">₹{ref.reward_amount}</span>
+                                                                </td>
+                                                                <td className="px-3 py-2.5">
+                                                                    <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${
+                                                                        ref.status === 'REWARDED' ? 'bg-emerald-900/20 text-emerald-400 border-emerald-900/40' :
+                                                                        ref.status === 'QUALIFIED' ? 'bg-blue-900/20 text-blue-400 border-blue-900/40' :
+                                                                        'bg-amber-900/20 text-amber-400 border-amber-900/40'
+                                                                    }`}>{ref.status}</span>
+                                                                </td>
+                                                                <td className="px-3 py-2.5 text-slate-500">
+                                                                    {new Date(ref.created_at).toLocaleDateString()}
+                                                                </td>
+                                                                <td className="px-3 py-2.5">
+                                                                    {ref.status !== 'REWARDED' && (
+                                                                        <button
+                                                                            disabled={rewardingId === ref.id}
+                                                                            onClick={async () => {
+                                                                                setRewardingId(ref.id);
+                                                                                try {
+                                                                                    await fetch('/api/admin/referrals', {
+                                                                                        method: 'PATCH',
+                                                                                        headers: { 'Content-Type': 'application/json' },
+                                                                                        body: JSON.stringify({ referral_id: ref.id }),
+                                                                                    });
+                                                                                    const r = await fetch('/api/admin/referrals');
+                                                                                    if (r.ok) setReferrals((await r.json()).referrals || []);
+                                                                                } finally {
+                                                                                    setRewardingId(null);
+                                                                                }
+                                                                            }}
+                                                                            className="px-2 py-1 bg-emerald-700 hover:bg-emerald-600 disabled:opacity-50 text-white text-[9px] font-black rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
+                                                                        >
+                                                                            {rewardingId === ref.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle className="w-3 h-3" />}
+                                                                            {rewardingId === ref.id ? '...' : 'Mark Rewarded'}
+                                                                        </button>
+                                                                    )}
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
                                         </div>
                                     )}
                                 </div>

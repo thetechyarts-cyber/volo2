@@ -44,6 +44,7 @@ export default function HomeLandingPage() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [authSuccess, setAuthSuccess] = useState<string | null>(null);
   const [pinSetup, setPinSetup] = useState('');
+  const [pinLength, setPinLength] = useState<4 | 6>(4);
   const [redirectToUrl, setRedirectToUrl] = useState('');
   const [isPinSetupFocused, setIsPinSetupFocused] = useState(false);
 
@@ -153,8 +154,8 @@ export default function HomeLandingPage() {
     setAuthSuccess(null);
     setAuthLoading(true);
 
-    if (pinSetup.length < 4) {
-      setAuthError('PIN must be at least 4 digits');
+    if (pinSetup.length !== pinLength) {
+      setAuthError(`Please enter exactly ${pinLength} digits`);
       setAuthLoading(false);
       return;
     }
@@ -1349,13 +1350,40 @@ export default function HomeLandingPage() {
 
             {authStep === 'SET_PIN' && (
               <form onSubmit={handleSetPin} className="space-y-5 mt-6">
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <label className="text-[10px] font-extrabold uppercase text-slate-455 tracking-wider flex items-center gap-1.5 justify-center">
                     <Lock className="h-4 w-4 text-[#FF7A00]" />
                     Create a Secure Login PIN
                   </label>
+
+                  {/* PIN length selector */}
+                  <div className="flex justify-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => { setPinLength(4); setPinSetup(p => p.slice(0, 4)); }}
+                      className={`flex-1 max-w-[120px] py-2 rounded-xl text-[10px] font-extrabold uppercase tracking-wider border transition-all ${
+                        pinLength === 4
+                          ? 'bg-[#FF7A00] border-[#FF7A00] text-white shadow-md'
+                          : 'bg-slate-50 border-slate-200 text-slate-500 hover:border-[#FF7A00] hover:text-[#FF7A00]'
+                      }`}
+                    >
+                      4 Digit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPinLength(6)}
+                      className={`flex-1 max-w-[120px] py-2 rounded-xl text-[10px] font-extrabold uppercase tracking-wider border transition-all ${
+                        pinLength === 6
+                          ? 'bg-[#FF7A00] border-[#FF7A00] text-white shadow-md'
+                          : 'bg-slate-50 border-slate-200 text-slate-500 hover:border-[#FF7A00] hover:text-[#FF7A00]'
+                      }`}
+                    >
+                      6 Digit
+                    </button>
+                  </div>
+
                   <p className="text-[11px] text-slate-550 text-center leading-relaxed">
-                    Choose a 4 to 6 digit PIN. You will use this PIN to log in next time on recognized devices.
+                    You will use this {pinLength}-digit PIN to log in next time on recognized devices.
                   </p>
                   
                   <div className="relative flex justify-center py-2">
@@ -1364,20 +1392,20 @@ export default function HomeLandingPage() {
                       type="text"
                       pattern="\d*"
                       inputMode="numeric"
-                      maxLength={6}
+                      maxLength={pinLength}
                       value={pinSetup}
-                      onChange={(e) => setPinSetup(e.target.value.replace(/\D/g, ''))}
+                      onChange={(e) => setPinSetup(e.target.value.replace(/\D/g, '').slice(0, pinLength))}
                       onFocus={() => setIsPinSetupFocused(true)}
                       onBlur={() => setIsPinSetupFocused(false)}
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                       required
                       autoFocus
                     />
-                    <div className="flex gap-3 justify-center">
-                      {Array.from({ length: 6 }).map((_, idx) => (
+                    <div className="flex gap-2 justify-center">
+                      {Array.from({ length: pinLength }).map((_, idx) => (
                         <div
                           key={idx}
-                          className={`w-12 h-14 rounded-2xl border flex items-center justify-center text-2xl font-bold transition-all duration-200
+                          className={`w-11 h-13 rounded-2xl border flex items-center justify-center text-2xl font-bold transition-all duration-200
                             ${
                               isPinSetupFocused && pinSetup.length === idx
                                 ? 'border-[#FF7A00] ring-4 ring-[#FF7A00]/10 scale-105 bg-slate-50 shadow-md'
@@ -1395,13 +1423,13 @@ export default function HomeLandingPage() {
 
                 <button
                   type="submit"
-                  disabled={authLoading || pinSetup.length < 4}
+                  disabled={authLoading || pinSetup.length !== pinLength}
                   className="w-full bg-[#FF7A00] hover:bg-orange-600 disabled:bg-orange-400 text-white font-extrabold rounded-2xl py-3.5 text-xs uppercase tracking-wider transition-colors flex justify-center items-center gap-1.5 select-none cursor-pointer shadow-sm hover-scale-btn"
                 >
                   {authLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    'Set PIN & Continue'
+                    `Set ${pinLength}-Digit PIN & Continue`
                   )}
                 </button>
               </form>

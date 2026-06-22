@@ -78,9 +78,16 @@ const navigationCategories: SidebarCategory[] = [
 interface AdminSidebarProps {
   isCollapsed: boolean;
   onToggleCollapse: () => void;
+  isMobileOpen?: boolean;
+  onCloseMobile?: () => void;
 }
 
-export default function AdminSidebar({ isCollapsed, onToggleCollapse }: AdminSidebarProps) {
+export default function AdminSidebar({ 
+  isCollapsed, 
+  onToggleCollapse,
+  isMobileOpen = false,
+  onCloseMobile
+}: AdminSidebarProps) {
   const pathname = usePathname();
   const [unassignedCount, setUnassignedCount] = useState<number | null>(null);
 
@@ -104,8 +111,12 @@ export default function AdminSidebar({ isCollapsed, onToggleCollapse }: AdminSid
 
   return (
     <aside 
-      className={`fixed bottom-0 left-0 top-16 z-20 flex flex-col border-r border-[#1F2937] bg-[#111827] text-slate-400 select-none transition-all duration-300 ease-in-out ${
-        isCollapsed ? 'w-16' : 'w-16 lg:w-64'
+      className={`fixed bottom-0 left-0 top-16 z-20 flex flex-col border-r border-[#1F2937] bg-[#111827] text-slate-400 select-none transition-all duration-300 ease-in-out w-64 ${
+        isMobileOpen 
+          ? 'translate-x-0' 
+          : '-translate-x-full lg:translate-x-0'
+      } ${
+        isCollapsed ? 'lg:w-16' : 'lg:w-64'
       }`}
     >
       <nav className="flex-1 space-y-6 px-3 py-6 overflow-y-auto no-scrollbar">
@@ -129,6 +140,7 @@ export default function AdminSidebar({ isCollapsed, onToggleCollapse }: AdminSid
                     key={item.href}
                     href={item.href}
                     title={isCollapsed ? item.label : undefined}
+                    onClick={onCloseMobile}
                     className={`group relative flex items-center justify-between rounded-xl px-3 py-2.5 text-xs font-bold transition-all duration-200 active:scale-98 ${
                       isActive
                         ? 'bg-gradient-to-r from-[#FF8A00] to-[#FF9F2E] text-white shadow-lg shadow-orange-950/20 scale-[1.01]'

@@ -45,6 +45,7 @@ function CustomerLoginInner() {
   const [email, setEmail] = useState('');
   const [step, setStep] = useState<'PHONE' | 'OTP' | 'PIN' | 'EMAIL' | 'SET_PIN'>('PHONE');
   const [pinSetup, setPinSetup] = useState('');
+  const [pinLength, setPinLength] = useState<4 | 6>(4);
   const [redirectToUrl, setRedirectToUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -271,8 +272,8 @@ function CustomerLoginInner() {
     setErrorMsg(null);
     setLoading(true);
 
-    if (pinSetup.length < 4) {
-      setErrorMsg('PIN must be at least 4 digits');
+    if (pinSetup.length !== pinLength) {
+      setErrorMsg(`Please enter exactly ${pinLength} digits`);
       setLoading(false);
       return;
     }
@@ -620,9 +621,38 @@ function CustomerLoginInner() {
 
         {step === 'SET_PIN' && (
           <form onSubmit={handleSetPin} className="space-y-5">
-            <div className="space-y-2">
+            <div className="space-y-3">
               <label className="text-xs text-slate-400 font-medium block text-center">Create a Secure Login PIN</label>
-              <p className="text-[11px] text-slate-500 text-center leading-relaxed">Choose a 4 to 6 digit PIN. You will use this PIN to log in next time on this device.</p>
+
+              {/* PIN length selector */}
+              <div className="flex justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => { setPinLength(4); setPinSetup(p => p.slice(0, 4)); }}
+                  className={`flex-1 max-w-[120px] py-2 rounded-xl text-xs font-bold border transition-all ${
+                    pinLength === 4
+                      ? 'bg-violet-600 border-violet-600 text-white shadow-md'
+                      : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-violet-500 hover:text-violet-400'
+                  }`}
+                >
+                  4 Digit PIN
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPinLength(6)}
+                  className={`flex-1 max-w-[120px] py-2 rounded-xl text-xs font-bold border transition-all ${
+                    pinLength === 6
+                      ? 'bg-violet-600 border-violet-600 text-white shadow-md'
+                      : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-violet-500 hover:text-violet-400'
+                  }`}
+                >
+                  6 Digit PIN
+                </button>
+              </div>
+
+              <p className="text-[11px] text-slate-500 text-center leading-relaxed">
+                You will use this {pinLength}-digit PIN to log in next time on this device.
+              </p>
               
               <div className="relative flex justify-center py-2">
                 <input
@@ -630,26 +660,26 @@ function CustomerLoginInner() {
                   type="text"
                   pattern="\d*"
                   inputMode="numeric"
-                  maxLength={6}
+                  maxLength={pinLength}
                   value={pinSetup}
-                  onChange={(e) => setPinSetup(e.target.value.replace(/\D/g, ''))}
+                  onChange={(e) => setPinSetup(e.target.value.replace(/\D/g, '').slice(0, pinLength))}
                   onFocus={() => setIsPinSetupFocused(true)}
                   onBlur={() => setIsPinSetupFocused(false)}
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                   required
                   autoFocus
                 />
-                <div className="flex gap-3 justify-center">
-                  {Array.from({ length: 6 }).map((_, idx) => (
+                <div className="flex gap-2 justify-center">
+                  {Array.from({ length: pinLength }).map((_, idx) => (
                     <div
                       key={idx}
-                      className={`w-12 h-14 rounded-2xl border flex items-center justify-center text-2xl font-bold transition-all duration-200
+                      className={`w-11 h-13 rounded-2xl border flex items-center justify-center text-2xl font-bold transition-all duration-200
                         ${
                           isPinSetupFocused && pinSetup.length === idx
                             ? 'border-violet-500 ring-4 ring-violet-500/10 scale-105 bg-slate-900 shadow-md'
                             : pinSetup[idx]
                             ? 'border-violet-600 bg-slate-950 text-violet-400 font-sans'
-                            : 'border-slate-800 bg-slate-950/60 text-slate-650'
+                            : 'border-slate-800 bg-slate-950/60 text-slate-600'
                         }`}
                     >
                       {pinSetup[idx] ? '•' : ''}
@@ -661,13 +691,13 @@ function CustomerLoginInner() {
 
             <button
               type="submit"
-              disabled={loading || pinSetup.length < 4}
+              disabled={loading || pinSetup.length !== pinLength}
               className="w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 disabled:from-violet-600/50 disabled:to-indigo-600/50 text-white font-medium rounded-lg py-2.5 text-sm transition-all flex justify-center items-center gap-2 cursor-pointer shadow-lg"
             >
               {loading ? (
                 <span className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
-                'Set PIN & Continue'
+                `Set ${pinLength}-Digit PIN & Continue`
               )}
             </button>
           </form>

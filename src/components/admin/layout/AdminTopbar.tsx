@@ -17,7 +17,8 @@ import {
   Volume2,
   CheckCircle2,
   AlertTriangle,
-  X
+  X,
+  Menu
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -27,13 +28,15 @@ interface AdminTopbarProps {
   adminAvatar?: string;
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
+  onToggleMobileMenu?: () => void;
 }
 
 export default function AdminTopbar({
   adminName = 'Super Admin',
   adminAvatar = '',
   isCollapsed = false,
-  onToggleCollapse
+  onToggleCollapse,
+  onToggleMobileMenu
 }: AdminTopbarProps) {
   const router = useRouter();
   const [showSearchModal, setShowSearchModal] = useState(false);
@@ -174,6 +177,16 @@ export default function AdminTopbar({
       <header className="fixed top-0 left-0 right-0 z-30 h-16 bg-[#111827]/80 backdrop-blur-xl border-b border-[#1F2937] px-6 flex items-center justify-between shadow-lg shadow-black/35 select-none no-print">
         {/* Brand Logo & Collapse Trigger toggle */}
         <div className="flex items-center gap-4">
+          {/* Hamburger Menu Toggle for Mobile/Tablet */}
+          <button
+            type="button"
+            onClick={onToggleMobileMenu}
+            className="lg:hidden p-2 rounded-xl border border-[#1F2937] bg-[#0A0F1E] text-slate-400 hover:text-white hover:border-[#FF8A00]/40 transition-colors cursor-pointer active:scale-95 shrink-0"
+            aria-label="Toggle Menu"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+
           <Link href="/admin/dashboard" className="flex items-center gap-3 hover:opacity-95 transition-opacity">
             <img 
               src="/images/logo.jpeg" 
