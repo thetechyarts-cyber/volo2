@@ -1161,15 +1161,17 @@ export async function POST(
       return NextResponse.json({ success: true, message: 'Worker reassigned successfully' });
     }
 
-    // D. workers/kyc
-    if (slug[0] === 'workers' && slug[1] === 'kyc') {
-      const { workerId, action, reason } = await request.json();
+    // D. workers/kyc or workers/[id]/kyc
+    if (slug[0] === 'workers' && (slug[1] === 'kyc' || (slug.length === 3 && slug[2] === 'kyc'))) {
+      const body = await request.json();
+      const workerId = slug.length === 3 ? slug[1] : body.workerId;
+      const { action, reason, fieldApproval } = body;
 
       if (!workerId || !action) {
         return NextResponse.json({ error: 'Missing parameters' }, { status: 400 });
       }
 
-      if (!['APPROVE', 'REJECT'].includes(action)) {
+      if (!['APPROVE', 'REJECT', 'REQUEST_RESUBMISSION'].includes(action)) {
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
       }
 
@@ -1187,6 +1189,40 @@ export async function POST(
       if (action === 'APPROVE') {
         const { createWallet } = await import('@/lib/wallet-engine');
         await createWallet(workerId);
+      }
+
+      // Update worker_kyc table if field approval checklist is provided
+      if (fieldApproval) {
+        await supabaseAdmin
+          .from('worker_kyc')
+          .update({
+            aadhaar_status: fieldApproval.aadhaar || status,
+            pan_status: fieldApproval.pan || status,
+            selfie_status: fieldApproval.selfie || status,
+            overall_status: status,
+            reviewed_by: session.user_id,
+            reviewed_at: new Date().toISOString(),
+            remarks: reason || null
+          })
+          .eq('worker_id', workerId);
+
+        // Update individual document statuses in worker_documents
+        const docTypes = {
+          aadhaar: ['AADHAAR_FRONT', 'AADHAAR_BACK'],
+          pan: ['PAN_CARD'],
+          selfie: ['SELFIE_VERIFICATION']
+        };
+
+        for (const [field, types] of Object.entries(docTypes)) {
+          const fieldStatus = fieldApproval[field as keyof typeof docTypes];
+          if (fieldStatus) {
+            await supabaseAdmin
+              .from('worker_documents')
+              .update({ status: fieldStatus })
+              .eq('worker_id', workerId)
+              .in('document_type', types);
+          }
+        }
       }
 
       // Dispatch alert notification
@@ -1209,6 +1245,38 @@ export async function POST(
       });
 
       return NextResponse.json({ success: true, worker: updatedWorker });
+    }
+
+    // D.2 workers/[id]/status
+    if (slug[0] === 'workers' && slug.length === 3 && slug[2] === 'status') {
+      const workerId = slug[1];
+      const { action } = await request.json();
+
+      if (!action || !['ACTIVATE', 'SUSPEND'].includes(action)) {
+        return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
+      }
+
+      const isActive = action === 'ACTIVATE';
+
+      const { data: updatedUser, error } = await supabaseAdmin
+        .from('users')
+        .update({ is_active: isActive })
+        .eq('id', workerId)
+        .select('*')
+        .single();
+
+      if (error) throw error;
+
+      // Write Audit Log
+      await logAuditAction({
+        admin_id: session.user_id,
+        action: isActive ? AuditAction.WORKER_ACTIVATED : AuditAction.WORKER_SUSPENDED,
+        target_type: 'worker',
+        target_id: workerId,
+        metadata: { action }
+      });
+
+      return NextResponse.json({ success: true, user: updatedUser });
     }
 
     // E. bookings/[id]/cancel
