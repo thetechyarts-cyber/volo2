@@ -123,6 +123,17 @@ export async function POST(request: Request) {
           console.warn('Referral processing failed (non-fatal):', refErr);
         }
       }
+    } else {
+      user_id = existingUser.id;
+      is_active = existingUser.is_active;
+      is_suspended = existingUser.is_suspended || false;
+      current_full_name = existingUser.full_name || '';
+      existing_pin_hash = existingUser.pin_hash;
+
+      // Check if role matches
+      if (existingUser.role !== role) {
+        return NextResponse.json({ error: 'UNAUTHORIZED_ROLE' }, { status: 403, headers: cacheHeaders });
+      }
     }
 
     // 3. Verify Account Status
