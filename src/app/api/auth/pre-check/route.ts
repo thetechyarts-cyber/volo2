@@ -13,7 +13,7 @@ export async function POST(request: Request) {
     const recaptchaResult = await verifyRecaptchaToken(recaptchaToken, 'LOGIN');
     if (!recaptchaResult.success) {
       return NextResponse.json(
-        { error: 'Verification failed. Please try again.' }, 
+        { error: `Verification failed. Please try again. Reason: ${recaptchaResult.reason}` }, 
         { status: 400, headers: cacheHeaders }
       );
     }

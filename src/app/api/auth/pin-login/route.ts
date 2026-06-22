@@ -14,7 +14,7 @@ export async function POST(request: Request) {
     const recaptchaResult = await verifyRecaptchaToken(recaptchaToken, 'LOGIN');
     if (!recaptchaResult.success) {
       return NextResponse.json(
-        { success: false, error: 'Verification failed. Please try again.' }, 
+        { success: false, error: `Verification failed. Please try again. Reason: ${recaptchaResult.reason}` }, 
         { status: 400, headers: cacheHeaders }
       );
     }
