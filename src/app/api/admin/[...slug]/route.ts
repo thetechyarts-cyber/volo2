@@ -1179,7 +1179,7 @@ export async function POST(
 
       const { data: updatedWorker, error } = await supabaseAdmin
         .from('workers')
-        .update({ kyc_status: status, kyc_remarks: reason || null })
+        .update({ kyc_status: status })
         .eq('id', workerId)
         .select('*')
         .single();
@@ -1191,18 +1191,25 @@ export async function POST(
         await createWallet(workerId);
       }
 
-      // Update worker_kyc table if field approval checklist is provided
+      // Update overall kyc checklist and remarks in worker_kyc table
+      await supabaseAdmin
+        .from('worker_kyc')
+        .update({
+          overall_status: status,
+          remarks: reason || null,
+          reviewed_by: session.user_id,
+          reviewed_at: new Date().toISOString()
+        })
+        .eq('worker_id', workerId);
+
+      // Update specific checklists if fieldApproval is provided
       if (fieldApproval) {
         await supabaseAdmin
           .from('worker_kyc')
           .update({
             aadhaar_status: fieldApproval.aadhaar || status,
             pan_status: fieldApproval.pan || status,
-            selfie_status: fieldApproval.selfie || status,
-            overall_status: status,
-            reviewed_by: session.user_id,
-            reviewed_at: new Date().toISOString(),
-            remarks: reason || null
+            selfie_status: fieldApproval.selfie || status
           })
           .eq('worker_id', workerId);
 
