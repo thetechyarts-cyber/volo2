@@ -43,12 +43,10 @@ export async function verifyRecaptchaToken(
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        assessment: {
-          event: {
-            token: token,
-            siteKey: siteKey,
-            expectedAction: action,
-          },
+        event: {
+          token: token,
+          siteKey: siteKey,
+          expectedAction: action,
         },
       }),
     });
